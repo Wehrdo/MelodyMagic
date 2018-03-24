@@ -26,7 +26,7 @@ def run(out_port):
     melody_gen = MelodyGen()
     transposition = 0
     key = 60 # middle C = 60
-    tempo = 130
+    tempo = 100
     s_per_sixteenth = 60 / (4 * tempo)
     ChordGen.init()
     DrumMachine.init()
