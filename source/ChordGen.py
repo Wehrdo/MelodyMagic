@@ -1,3 +1,5 @@
+import random
+
 majorChord = [0, 4, 7]
 minorChord = [0, 3, 7]
 dimChord = [0, 3, 6]
@@ -23,17 +25,36 @@ chordProgressions = [
          (minorChord, 2),
          (majorChord, 5),
          (majorChord, 1)
+     ]),
+    ("With or without you",
+     [
+         (majorChord, 1),
+         (majorChord, 5),
+         (minorChord, 6),
+         (majorChord, 4)
+     ]),
+    ("Brown Eyed Girl",
+     [
+         (majorChord, 1),
+         (majorChord, 4),
+         (majorChord, 1),
+         (majorChord, 5)
      ])
 ]
 
+first = True
 progression = 0
 index = 0
 
 
 def init():
-    global progression, index
+    global progression, index, first
 
-    progression = (progression + 1) % len(chordProgressions)
+    if first:
+        first = False
+        random.seed()
+
+    progression = random.randrange(len(chordProgressions))
     index = 0
 
     print("Selecting chord progression \"" + chordProgressions[progression][0] + "\"")
@@ -46,7 +67,7 @@ def get_next():
 
     notes = []
     for i in range(len(chord[0])):
-        notes.append(chord[0][i] + chord[1])
+        notes.append(chord[0][i] + chord[1] - 1)
 
     print(index)
     index = (index + 1) % len(chordProgressions[progression][1])
