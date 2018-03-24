@@ -18,7 +18,7 @@ def run(out_port):
     transposition = 0
     key = 60 # middle C = 60
     tempo = 100
-    s_per_sixteenth = 1 / (16 * tempo / 60)
+    s_per_sixteenth = 60 / (4 * tempo)
     ChordGen.init()
     while True:
         chord = ChordGen.get_next()
@@ -34,14 +34,8 @@ def run(out_port):
             end_msg = make_chord_msgs([midi_note], key, 0, transposition)[0]
             out_port.send(end_msg)
 
-        # for beat in range(1, 4):
-        #     for sixteenth in range(16):
-        #         # TODO: Run a global timer instead of sleep
-        #         time.sleep(s_per_sixteenth)
-
         for msg in make_chord_msgs(chord, key, 0, transposition):
             out_port.send(msg)
-        chord = [note+1 for note in chord]
 
 
 if __name__ == '__main__':
