@@ -39,6 +39,34 @@ chordProgressions = [
          (majorChord, 4),
          (majorChord, 1),
          (majorChord, 5)
+     ]),
+    ("Standard 3",
+     [
+         (majorChord, 1),
+         (minorChord, 6),
+         (majorChord, 4),
+         (majorChord, 5)
+     ]),
+    ("Standard 4",
+     [
+         (majorChord, 1),
+         (minorChord, 6),
+         (minorChord, 2),
+         (majorChord, 5)
+     ]),
+    ("Shit just sounds like magic",
+     [
+         (majorChord, 1),
+         (majorChord, 6),
+         (majorChord, 3),
+         (majorChord, 7)
+     ]),
+    ("Noise Storm - This Feeling",
+     [
+         (majorChord, 6),
+         (majorChord, 3),
+         (majorChord, 4),
+         (majorChord, 1)
      ])
 ]
 
