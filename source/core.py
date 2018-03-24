@@ -1,3 +1,5 @@
+import signal
+import sys
 import time
 import mido
 import ChordGen
@@ -62,4 +64,12 @@ def run(out_port):
 
 if __name__ == '__main__':
     with mido.open_output('loopMIDI Port 1') as port:
+        def signal_handler(signal, frame):
+            print("sending")
+            for chan in [chan_percussion, chan_harmony, chan_melody]:
+                for note in range(0, 128):
+                    port.send(mido.Message('note_off', note=note, channel=chan, velocity=0))
+            sys.exit(0)
+        signal.signal(signal.SIGINT, signal_handler)
+
         run(port)
