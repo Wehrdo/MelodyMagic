@@ -46,7 +46,7 @@ class MelodyGen:
             # Choose note duration
             # note_length = random.randint(0, min(measure_duration - duration, 16))
             rhythm_pos = np.random.choice(np.arange(0, rhythm_mm.shape[1]), p=rhythm_mm[rhythm_pos])
-            note_length = rhythm_mm_durations[rhythm_pos]
+            note_length = min(rhythm_mm_durations[rhythm_pos], measure_duration - duration)
 
             rhythms.append(note_length)
             duration += note_length

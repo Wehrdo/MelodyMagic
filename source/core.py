@@ -34,10 +34,8 @@ def run(out_port):
             out_port.send(msg)
 
         melody_notes, melody_rhythms = melody_gen.get_next(chord)
-        melody_times = [0]
-        for dur in melody_rhythms:
-            melody_times.append(melody_times[-1] + dur)
-        # print(melody_times)
+        print(melody_rhythms)
+
         # for note_pair, duration in zip(melody_notes, melody_rhythms):
         #     midi_note = octave_to_note(note_pair[1], note_pair[0])
         #     start_msg = make_chord_msgs([midi_note], key, 100, transposition, chan_melody)[0]
@@ -47,15 +45,34 @@ def run(out_port):
         #     out_port.send(end_msg)
 
         drum_notes, drum_rhythms = DrumMachine.get_next()
-        print(drum_rhythms)
         drum_idx = 0
+        melody_idx = 0
+        melody_dur_remaining = 0
+        melody_off_msg = None
         for sixteenth in range(16):
+            # Percussion
             if drum_idx < len(drum_rhythms) and drum_rhythms[drum_idx] == sixteenth:
-                for msg in make_chord_msgs(drum_notes[drum_idx], 0, 100, transposition, chan_percussion):
-                    out_port.send(msg)
+                # for msg in make_chord_msgs(drum_notes[drum_idx], 0, 100, transposition, chan_percussion):
+                #     out_port.send(msg)
                 drum_idx += 1
 
+            if melody_dur_remaining == 0:
+                if melody_off_msg is not None:
+                    out_port.send(melody_off_msg)
+                note_pair = melody_notes[melody_idx]
+                midi_note = octave_to_note(note_pair[1], note_pair[0])
+                start_msg = make_chord_msgs([midi_note], key, 100, transposition, chan_melody)[0]
+                out_port.send(start_msg)
+
+                melody_off_msg = make_chord_msgs([midi_note], key, 0, transposition, chan_melody)[0]
+
+                melody_dur_remaining = melody_rhythms[melody_idx]
+                melody_idx += 1
+
+
+
             time.sleep(s_per_sixteenth)
+            melody_dur_remaining -= 1
 
 
         for msg in make_chord_msgs(chord, key, 0, transposition):
