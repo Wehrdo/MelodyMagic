@@ -5,7 +5,7 @@ rhythym = []
 def init():
     global rhythym
 
-    dur = 2 ** random.randrange(1, 5)
+    dur = 2 ** random.randrange(1, 3)
 
     total = 0
     while total < 16:
