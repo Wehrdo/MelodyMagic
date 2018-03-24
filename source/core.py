@@ -34,15 +34,6 @@ def run(out_port):
             out_port.send(msg)
 
         melody_notes, melody_rhythms = melody_gen.get_next(chord)
-        print(melody_rhythms)
-
-        # for note_pair, duration in zip(melody_notes, melody_rhythms):
-        #     midi_note = octave_to_note(note_pair[1], note_pair[0])
-        #     start_msg = make_chord_msgs([midi_note], key, 100, transposition, chan_melody)[0]
-        #     out_port.send(start_msg)
-        #     time.sleep(s_per_sixteenth * duration)
-        #     end_msg = make_chord_msgs([midi_note], key, 0, transposition, chan_melody)[0]
-        #     out_port.send(end_msg)
 
         drum_notes, drum_rhythms = DrumMachine.get_next()
         drum_idx = 0
@@ -52,10 +43,11 @@ def run(out_port):
         for sixteenth in range(16):
             # Percussion
             if drum_idx < len(drum_rhythms) and drum_rhythms[drum_idx] == sixteenth:
-                # for msg in make_chord_msgs(drum_notes[drum_idx], 0, 100, transposition, chan_percussion):
-                #     out_port.send(msg)
+                for msg in make_chord_msgs(drum_notes[drum_idx], 0, 100, transposition, chan_percussion):
+                    out_port.send(msg)
                 drum_idx += 1
 
+            # Melody
             if melody_dur_remaining == 0:
                 if melody_off_msg is not None:
                     out_port.send(melody_off_msg)
