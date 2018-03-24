@@ -83,8 +83,8 @@ def run(out_port):
             #     bass_dur_remaining = bass_rhythms[bass_idx]
             #     bass_idx += 1
             #
-            # time.sleep(s_per_sixteenth)
-            # melody_dur_remaining -= 1
+            time.sleep(s_per_sixteenth)
+            melody_dur_remaining -= 1
 
 
         for msg in make_chord_msgs(chord, key, 0, transposition):
