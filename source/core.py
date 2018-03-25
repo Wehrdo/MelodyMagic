@@ -1,6 +1,7 @@
 import signal
 import sys
 import time
+import math
 import socket
 from collections import defaultdict
 import pickle
@@ -45,12 +46,39 @@ def run(out_port):
     ChordGen.init()
     DrumMachine.init()
     Bassline.init()
+    n_octaves = 4
+    dir_decay = 0.9
+    dir_scale = 0.4
+    melody_dir = 0
+    melody_intensity = 0
     melody_off_msg = None
     bass_off_msg = None
     start_time = time.perf_counter()
     to_time = start_time + s_per_sixteenth
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind((UDP_IP, UDP_PORT))
+    sock.setblocking(False)
+
+    def recv_of():
+        received = bytes()
+        try:
+            while True:
+                new_recv = sock.recv(1024)
+                if len(new_recv):
+                    received = new_recv
+                else:
+                    break
+        except socket.error:
+            pass
+
+        flow = (0, 0)
+        if len(received):
+            data = pickle.loads(received)
+            if data['instrument'] == 'camera':
+                flow = data['motion']
+        return flow
+
 
     while True:
         chord, chord_progress = ChordGen.get_next()
@@ -71,6 +99,11 @@ def run(out_port):
         bass_idx = 0
         bass_dur_remaining = 0
         for sixteenth in range(16):
+            # Optical flow
+            new_dir, new_intensity = recv_of()
+            melody_dir += dir_scale * new_dir
+            print(melody_dir)
+
             # Percussion
             if drum_idx < len(drum_rhythms) and drum_rhythms[drum_idx] == sixteenth:
                 for msg in make_chord_msgs(drum_notes[drum_idx], 0, 0, transposition, chan_percussion):
@@ -89,12 +122,16 @@ def run(out_port):
                 if melody_off_msg is not None:
                     out_port.send(melody_off_msg)
                     melody_off_msg = None
-                note_pair = melody_notes[melody_idx]
-                midi_note = octave_to_note(note_pair[1], note_pair[0])
+                chord_pos = melody_notes[melody_idx]
+                chord_pos += round(float(melody_dir))
+                octave = math.floor(chord_pos / (n_octaves * len(chord)))
+                note = chord[chord_pos % len(chord)]
+                print(note, octave)
+                midi_note = octave_to_note(octave, note)
                 start_msg = make_chord_msgs([midi_note], key, 100, transposition, chan_melody)[0]
                 out_port.send(start_msg)
                 melody_net_msg = {'instrument': 'melody',
-                              'note': note_pair[0]}
+                              'note': note}
                 sock.sendto(pickle.dumps(melody_net_msg), (UDP_IP, UDP_PORT))
 
                 melody_off_msg = make_chord_msgs([midi_note], key, 0, transposition, chan_melody)[0]
@@ -123,13 +160,13 @@ def run(out_port):
                         'chord': (chord, chord_progress)}
                     sock.sendto(pickle.dumps(bass_net_msg), (UDP_IP, UDP_PORT))
 
-            sleep_for = max(0, to_time - time.perf_counter())
-            print(sleep_for)
-            time.sleep(sleep_for)
-            to_time += s_per_sixteenth
             melody_dur_remaining -= 1
             bass_dur_remaining -= 1
-            # note_status['melody']['time'] += s_per_sixteenth
+            melody_dir *= dir_decay
+
+            sleep_for = max(0, to_time - time.perf_counter())
+            time.sleep(sleep_for)
+            to_time += s_per_sixteenth
 
 
         for msg in make_chord_msgs(chord, key, 0, transposition):
@@ -151,18 +188,6 @@ def start(register_sigint):
             signal.signal(signal.SIGINT, signal_handler)
         run(port)
 
-# process = None
-# process_running = Value('i', 0)
-# def start_async():
-#     global process
-#     process_running.value = 1
-#     process = Process(target = start, args=(process_running,False))
-#     process.start()
-#
-# def stop_async():
-#     global process_running
-#     process_running.value = 0
-#     process.join()
 
 def no_cb(*args, **kwargs):
     pass
@@ -173,6 +198,3 @@ def set_melody_callback(cb):
 if __name__ == '__main__':
     thread_running = True
     start(True)
-    # start_async()
-    # time.sleep(10)
-    # stop_async()

@@ -11,7 +11,7 @@ class MelodyGen:
 
     def get_next(self, chord):
         # Generate Markov model
-        n_octaves = 2
+        n_octaves = 4
         dist = scipy.stats.norm
         dim = n_octaves * len(chord)
         mm = np.zeros((dim, dim))
@@ -52,9 +52,9 @@ class MelodyGen:
             duration += note_length
 
             pos = np.random.choice(np.arange(0, mm.shape[1]), p=mm[pos])
-            octave = int(pos / (n_octaves * len(chord)))
-            note = chord[pos % len(chord)]
-            notes.append((note, octave))
+            # octave = int(pos / (n_octaves * len(chord)))
+            # note = chord[pos % len(chord)]
+            notes.append(pos)
 
             # # Step random direction
             # idx_step = random.randint(-1, 1)
