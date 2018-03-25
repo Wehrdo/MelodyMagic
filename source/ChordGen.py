@@ -97,7 +97,7 @@ def get_next():
     for i in range(len(chord[0])):
         notes.append(chord[0][i] + chord[1] - 1)
 
-    print(index)
+    thisIndex = index;
     index = (index + 1) % len(chordProgressions[progression][1])
 
-    return notes
+    return notes, (thisIndex, len(chordProgressions[progression][1]))
