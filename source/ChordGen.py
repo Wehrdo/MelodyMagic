@@ -12,6 +12,33 @@ dimChord7 = [0, 3, 6, 9]
 halfDimChord7 = [0, 3, 6, 10]
 
 chordProgressions = [
+    ("La Bomba",
+     [
+         (majorChord, 1),
+         (majorChord, 4),
+         (majorChord7, 5)
+     ]),
+    ("Rock and Roll",
+     [
+         (majorChord, 1),
+         (majorChord, 4),
+         (majorChord, 5)
+     ]),
+    ("You are not alone",
+     [
+         (majorChord, 1),
+         (minorChord, 6),
+         (minorChord, 2),
+         (majorChord, 5)
+     ]),
+    ("Canon in D",
+     [
+         (majorChord, 1),
+         (majorChord, 5),
+         (minorChord, 6),
+         (minorChord, 3),
+         (majorChord, 4),
+     ]),
     ("50's Progression",
      [
          (majorChord, 1),
@@ -19,19 +46,21 @@ chordProgressions = [
          (majorChord, 4),
          (majorChord, 5)
      ]),
-    ("Circle Progression",
-     [
-         (minorChord, 6),
-         (minorChord, 2),
-         (majorChord, 5),
-         (majorChord, 1)
-     ]),
     ("With or without you",
      [
          (majorChord, 1),
          (majorChord, 5),
          (minorChord, 6),
          (majorChord, 4)
+     ])
+]
+dumb = [
+    ("Circle Progression",
+     [
+         (minorChord, 6),
+         (minorChord, 2),
+         (majorChord, 5),
+         (majorChord, 1)
      ]),
     ("Brown Eyed Girl",
      [
