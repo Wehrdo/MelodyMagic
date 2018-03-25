@@ -14,7 +14,7 @@ scene = bge.logic.getCurrentScene()
 
 if not 'initialized' in obj:
     obj['sock'] = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    obj['sock'].bind(('127.0.0.1', 5005))
+    obj['sock'].bind(('127.0.0.1', 5007))
     obj['sock'].setblocking(False)
 
     obj['circles'] = [scene.objects['note' + str(i+1)] for i in range(12)]
