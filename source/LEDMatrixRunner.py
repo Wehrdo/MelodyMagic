@@ -3,7 +3,7 @@ import time
 import pickle
 import socket
 
-LEDMatrix.init("COM3")
+LEDMatrix.init("COM4")
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(('127.0.0.1', 5005))
 

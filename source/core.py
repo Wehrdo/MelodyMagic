@@ -19,7 +19,8 @@ chan_bass = 3
 perc_inst_mapping = {inst[1]: inst[0] for inst in DrumMachine.instruments}
 
 UDP_IP = '127.0.0.1'
-UDP_PORT = 5005
+UDP_PORT_SENDS = [5005, 5009]
+UDP_PORT_RECV = 5007
 
 thread_running = False
 # note_status = {'melody': {'time': 0},
@@ -56,15 +57,16 @@ def run(out_port):
     start_time = time.perf_counter()
     to_time = start_time + s_per_sixteenth
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind((UDP_IP, UDP_PORT))
-    sock.setblocking(False)
+    sock_recv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock_recv.bind((UDP_IP, UDP_PORT_RECV))
+    sock_recv.setblocking(False)
+    sock_sends = [socket.socket(socket.AF_INET, socket.SOCK_DGRAM) for r in UDP_PORT_SENDS]
 
     def recv_of():
         received = bytes()
         try:
             while True:
-                new_recv = sock.recv(1024)
+                new_recv = sock_recv.recv(1024)
                 if len(new_recv):
                     received = new_recv
                 else:
@@ -87,7 +89,8 @@ def run(out_port):
 
         chord_net_msg = {'instrument': 'harmony',
             'chord': (chord, chord_progress)}
-        sock.sendto(pickle.dumps(chord_net_msg), (UDP_IP, UDP_PORT))
+        for i, sock_send in enumerate(sock_sends):
+            sock_send.sendto(pickle.dumps(chord_net_msg), (UDP_IP, UDP_PORT_SENDS[i]))
 
         melody_notes, melody_rhythms = melody_gen.get_next(chord)
         bass_notes, bass_rhythms = Bassline.get_next(chord)
@@ -113,7 +116,8 @@ def run(out_port):
 
                 percussion_net_msg = {'instrument': 'percussion'}
                 percussion_net_msg['hits'] = {perc_inst_mapping[note]: True for note in drum_notes[drum_idx]}
-                sock.sendto(pickle.dumps(percussion_net_msg), (UDP_IP, UDP_PORT))
+                for i, sock_send in enumerate(sock_sends):
+                    sock_send.sendto(pickle.dumps(percussion_net_msg), (UDP_IP, UDP_PORT_SENDS[i]))
 
                 drum_idx += 1
 
@@ -132,7 +136,8 @@ def run(out_port):
                 out_port.send(start_msg)
                 melody_net_msg = {'instrument': 'melody',
                               'note': note}
-                sock.sendto(pickle.dumps(melody_net_msg), (UDP_IP, UDP_PORT))
+                for i, sock_send in enumerate(sock_sends):
+                    sock_send.sendto(pickle.dumps(melody_net_msg), (UDP_IP, UDP_PORT_SENDS[i]))
 
                 melody_off_msg = make_chord_msgs([midi_note], key, 0, transposition, chan_melody)[0]
 
@@ -158,7 +163,8 @@ def run(out_port):
                 if sixteenth > 0:
                     bass_net_msg = {'instrument': 'bass',
                         'chord': (chord, chord_progress)}
-                    sock.sendto(pickle.dumps(bass_net_msg), (UDP_IP, UDP_PORT))
+                    for i, sock_send in enumerate(sock_sends):
+                        sock_send.sendto(pickle.dumps(bass_net_msg), (UDP_IP, UDP_PORT_SENDS[i]))
 
             melody_dur_remaining -= 1
             bass_dur_remaining -= 1
