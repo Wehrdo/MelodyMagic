@@ -36,7 +36,7 @@ def run(out_port):
     start_time = time.perf_counter()
     to_time = start_time + s_per_sixteenth
     while True:
-        chord = ChordGen.get_next()
+        chord, chord_progress = ChordGen.get_next()
         for msg in make_chord_msgs(chord, key, 100, transposition, chan_harmony):
             out_port.send(msg)
 
