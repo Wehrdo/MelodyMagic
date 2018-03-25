@@ -3,6 +3,7 @@ import sys
 import time
 import math
 import socket
+import random
 from collections import defaultdict
 import pickle
 import mido
@@ -38,15 +39,14 @@ def octave_to_note(octave, note_offset):
     octave_root = 12 * octave
     return octave_root + note_offset
 
+
 def run(out_port):
     melody_gen = MelodyGen()
     transposition = 0
     key = 60 # middle C = 60
     tempo = 100
     s_per_sixteenth = 60 / (4 * tempo)
-    ChordGen.init()
-    DrumMachine.init()
-    Bassline.init()
+    default_vel = 100
     n_octaves = 4
     dir_decay = 0.9
     dir_scale = 0.4
@@ -81,8 +81,18 @@ def run(out_port):
                 flow = data['motion']
         return flow
 
+    loop_i = 0
+    remaining_loops = 0
+
 
     while True:
+        if remaining_loops == 0:
+            # remaining_loops = random.randint(5, 8)
+            remaining_loops = 2 + 1
+            loop_i = 0
+            ChordGen.init()
+            DrumMachine.init()
+            Bassline.init()
         chord, chord_progress = ChordGen.get_next()
         for msg in make_chord_msgs(chord, key, 100, transposition, chan_harmony):
             out_port.send(msg)
@@ -102,16 +112,33 @@ def run(out_port):
         bass_idx = 0
         bass_dur_remaining = 0
         for sixteenth in range(16):
+            # volume = 1.0
+            # if loop_i == 0 and chord_progress[0] == 0:
+            #     volume = (sixteenth / 16)
+            # if remaining_loops == 1 or (remaining_loops == 2 and chord_progress[0] == 0):
+            #     if remaining_loops == 2 and chord_progress[0] == 0:
+            #         measures_left = chord_progress[1] + 1
+            #     elif remaining_loops == 1 and chord_progress[0] == 0:
+            #         measures_left = 1
+            #     else:
+            #         measures_left = 1 + chord_progress[1] - chord_progress[0]
+            #     measures_left -= (sixteenth / 16)
+            #     volume = measures_left / (chord_progress[1] + 1)
+            # volume = int(volume*127)
+            # print(volume)
+            # for chan in [chan_melody, chan_harmony, chan_bass, chan_percussion]:
+            # out_port.send(mido.Message('control_change', channel=0, control=0x10, value=volume))
+            velocity = default_vel
             # Optical flow
             new_dir, new_intensity = recv_of()
             melody_dir += dir_scale * new_dir
-            print(melody_dir)
+            # print(melody_dir)
 
             # Percussion
             if drum_idx < len(drum_rhythms) and drum_rhythms[drum_idx] == sixteenth:
                 for msg in make_chord_msgs(drum_notes[drum_idx], 0, 0, transposition, chan_percussion):
                     out_port.send(msg)
-                for msg in make_chord_msgs(drum_notes[drum_idx], 0, 100, transposition, chan_percussion):
+                for msg in make_chord_msgs(drum_notes[drum_idx], 0, velocity, transposition, chan_percussion):
                     out_port.send(msg)
 
                 percussion_net_msg = {'instrument': 'percussion'}
@@ -130,9 +157,8 @@ def run(out_port):
                 chord_pos += round(float(melody_dir))
                 octave = math.floor(chord_pos / (n_octaves * len(chord)))
                 note = chord[chord_pos % len(chord)]
-                print(note, octave)
                 midi_note = octave_to_note(octave, note)
-                start_msg = make_chord_msgs([midi_note], key, 100, transposition, chan_melody)[0]
+                start_msg = make_chord_msgs([midi_note], key, velocity, transposition, chan_melody)[0]
                 out_port.send(start_msg)
                 melody_net_msg = {'instrument': 'melody',
                               'note': note}
@@ -152,7 +178,7 @@ def run(out_port):
                     bass_off_msg = None
                 note = bass_notes[bass_idx]
                 midi_note = octave_to_note(0, note)
-                start_msg = make_chord_msgs([midi_note], key, 100, transposition, chan_bass)[0]
+                start_msg = make_chord_msgs([midi_note], key, velocity, transposition, chan_bass)[0]
                 out_port.send(start_msg)
 
                 bass_off_msg = make_chord_msgs([midi_note], key, 0, transposition, chan_bass)[0]
@@ -177,7 +203,12 @@ def run(out_port):
 
         for msg in make_chord_msgs(chord, key, 0, transposition):
             out_port.send(msg)
-    stop_all(out_port)
+
+        # if chord_progress[0] == 0:
+        #     remaining_loops -= 1
+        #     loop_i += 1
+        #     if remaining_loops == 0:
+        #         time.sleep(3)
 
 def stop_all(port):
     for chan in [chan_percussion, chan_harmony, chan_melody, chan_bass]:
