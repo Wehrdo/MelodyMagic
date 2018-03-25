@@ -57,6 +57,10 @@ def run(out_port):
         for msg in make_chord_msgs(chord, key, 100, transposition, chan_harmony):
             out_port.send(msg)
 
+        chord_net_msg = {'instrument': 'harmony',
+            'chord': (chord, chord_progress)}
+        sock.sendto(pickle.dumps(chord_net_msg), (UDP_IP, UDP_PORT))
+
         melody_notes, melody_rhythms = melody_gen.get_next(chord)
         bass_notes, bass_rhythms = Bassline.get_next(chord)
         drum_notes, drum_rhythms = DrumMachine.get_next()
@@ -113,6 +117,11 @@ def run(out_port):
 
                 bass_dur_remaining = bass_rhythms[bass_idx]
                 bass_idx += 1
+
+                if sixteenth > 0:
+                    bass_net_msg = {'instrument': 'bass',
+                        'chord': (chord, chord_progress)}
+                    sock.sendto(pickle.dumps(bass_net_msg), (UDP_IP, UDP_PORT))
 
             sleep_for = max(0, to_time - time.perf_counter())
             print(sleep_for)
