@@ -31,7 +31,7 @@ except:
     pass
 if len(received):
     data = pickle.loads(received)
-    if 'note' in data:
+    if data['instrument'] == 'melody':
         note = data['note']
         print("adding", note)
         circle = obj['circles'][note % len(obj['circles'])]
@@ -44,4 +44,5 @@ if len(received):
         new_obj.worldPosition.z += 0.1
 
     if 'kick' in data:
+        pass
 

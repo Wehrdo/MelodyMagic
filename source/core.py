@@ -75,6 +75,7 @@ def run(out_port):
                     out_port.send(msg)
 
                 percussion_net_msg = {perc_inst_mapping[note]: True for note in drum_notes[drum_idx]}
+                percussion_net_msg['instrument'] = 'percussion'
                 sock.sendto(pickle.dumps(percussion_net_msg), (UDP_IP, UDP_PORT))
 
                 drum_idx += 1
