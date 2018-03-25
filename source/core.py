@@ -33,6 +33,8 @@ def run(out_port):
     Bassline.init()
     melody_off_msg = None
     bass_off_msg = None
+    start_time = time.perf_counter()
+    to_time = start_time + s_per_sixteenth
     while True:
         chord = ChordGen.get_next()
         for msg in make_chord_msgs(chord, key, 100, transposition, chan_harmony):
@@ -41,8 +43,6 @@ def run(out_port):
         melody_notes, melody_rhythms = melody_gen.get_next(chord)
         bass_notes, bass_rhythms = Bassline.get_next(chord)
         drum_notes, drum_rhythms = DrumMachine.get_next()
-        print(bass_notes)
-        print(bass_rhythms)
 
         drum_idx = 0
         melody_idx = 0
@@ -62,6 +62,7 @@ def run(out_port):
             if melody_dur_remaining == 0:
                 if melody_off_msg is not None:
                     out_port.send(melody_off_msg)
+                    melody_off_msg = None
                 note_pair = melody_notes[melody_idx]
                 midi_note = octave_to_note(note_pair[1], note_pair[0])
                 start_msg = make_chord_msgs([midi_note], key, 100, transposition, chan_melody)[0]
@@ -88,7 +89,8 @@ def run(out_port):
                 bass_dur_remaining = bass_rhythms[bass_idx]
                 bass_idx += 1
 
-            time.sleep(s_per_sixteenth)
+            time.sleep(to_time - time.perf_counter())
+            to_time += s_per_sixteenth
             melody_dur_remaining -= 1
             bass_dur_remaining -= 1
 
