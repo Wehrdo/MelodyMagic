@@ -74,8 +74,8 @@ def run(out_port):
                 for msg in make_chord_msgs(drum_notes[drum_idx], 0, 100, transposition, chan_percussion):
                     out_port.send(msg)
 
-                percussion_net_msg = {perc_inst_mapping[note]: True for note in drum_notes[drum_idx]}
-                percussion_net_msg['instrument'] = 'percussion'
+                percussion_net_msg = {'instrument': 'percussion'}
+                percussion_net_msg['hits'] = {perc_inst_mapping[note]: True for note in drum_notes[drum_idx]}
                 sock.sendto(pickle.dumps(percussion_net_msg), (UDP_IP, UDP_PORT))
 
                 drum_idx += 1
